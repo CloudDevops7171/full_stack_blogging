@@ -1,12 +1,12 @@
 provider "aws" {
-  region = "us-east-1"
+  region = "us-east-2"
 }
 
 resource "aws_vpc" "devopsshack_vpc" {
   cidr_block = "10.0.0.0/16"
 
   tags = {
-    Name = "devopsshack-vpc"
+    Name = "devopsshack-vpc-1"
   }
 }
 
@@ -14,7 +14,7 @@ resource "aws_subnet" "devopsshack_subnet" {
   count = 2
   vpc_id                  = aws_vpc.devopsshack_vpc.id
   cidr_block              = cidrsubnet(aws_vpc.devopsshack_vpc.cidr_block, 8, count.index)
-  availability_zone       = element(["us-east-1a", "us-east-1b"], count.index)
+  availability_zone       = element(["us-east-2a", "us-east-2b"], count.index)
   map_public_ip_on_launch = true
 
   tags = {
@@ -26,7 +26,7 @@ resource "aws_internet_gateway" "devopsshack_igw" {
   vpc_id = aws_vpc.devopsshack_vpc.id
 
   tags = {
-    Name = "devopsshack-igw"
+    Name = "devopsshack-igw-1"
   }
 }
 
@@ -39,7 +39,7 @@ resource "aws_route_table" "devopsshack_route_table" {
   }
 
   tags = {
-    Name = "devopsshack-route-table"
+    Name = "devopsshack-route-table-1"
   }
 }
 
@@ -60,7 +60,7 @@ resource "aws_security_group" "devopsshack_cluster_sg" {
   }
 
   tags = {
-    Name = "devopsshack-cluster-sg"
+    Name = "devopsshack-cluster-sg-1"
   }
 }
 
@@ -82,12 +82,12 @@ resource "aws_security_group" "devopsshack_node_sg" {
   }
 
   tags = {
-    Name = "devopsshack-node-sg"
+    Name = "devopsshack-node-sg-1"
   }
 }
 
 resource "aws_eks_cluster" "devopsshack" {
-  name     = "devopsshack-cluster"
+  name     = "devopsshack-cluster-demo"
   role_arn = aws_iam_role.devopsshack_cluster_role.arn
 
   vpc_config {
@@ -98,14 +98,14 @@ resource "aws_eks_cluster" "devopsshack" {
 
 resource "aws_eks_node_group" "devopsshack" {
   cluster_name    = aws_eks_cluster.devopsshack.name
-  node_group_name = "devopsshack-node-group"
+  node_group_name = "devopsshack-node-group-demo"
   node_role_arn   = aws_iam_role.devopsshack_node_group_role.arn
   subnet_ids      = aws_subnet.devopsshack_subnet[*].id
 
   scaling_config {
-    desired_size = 3
-    max_size     = 3
-    min_size     = 3
+    desired_size = 2
+    max_size     = 2
+    min_size     = 2
   }
 
   instance_types = ["t2.large"]
@@ -117,7 +117,7 @@ resource "aws_eks_node_group" "devopsshack" {
 }
 
 resource "aws_iam_role" "devopsshack_cluster_role" {
-  name = "devopsshack-cluster-role"
+  name = "devopsshack-cluster-role-demo"
 
   assume_role_policy = <<EOF
 {
@@ -141,7 +141,7 @@ resource "aws_iam_role_policy_attachment" "devopsshack_cluster_role_policy" {
 }
 
 resource "aws_iam_role" "devopsshack_node_group_role" {
-  name = "devopsshack-node-group-role"
+  name = "devopsshack-node-group-role-demo"
 
   assume_role_policy = <<EOF
 {
