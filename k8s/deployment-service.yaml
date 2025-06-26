@@ -15,7 +15,7 @@ spec:
     spec:
       containers:
         - name: bloggingapp
-          image: devops2929/blogger-app:16
+          image: devops2929/blogger-app:17
           imagePullPolicy: Always
           ports:
             - containerPort: 8080
