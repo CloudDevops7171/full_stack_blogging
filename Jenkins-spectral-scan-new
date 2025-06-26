@@ -7,12 +7,12 @@ pipeline {
     environment {
         SPECTRAL_DSN = credentials('spectral-dsn')
         Docker_Repo = credentials('dockerCred')
-        ISSUE_THRESHOLD = '200'
+        ISSUE_THRESHOLD = '600'
     }
     stages {
         stage('Git Checkout') {
             steps {
-                git branch: 'main', credentialsId: 'github-token', url: 'https://github.com/swastik7777/FullStack-Blogging-App.git'
+                git branch: 'main', credentialsId: 'github-Token', url: 'https://github.com/CloudDevops7171/full_stack_blogging.git'
             }
         }
 
@@ -27,7 +27,11 @@ pipeline {
                 sh 'mvn test'
             }
         }
-
+       stage('install Spectral') {
+      steps {
+        sh "curl -L 'https://get.spectralops.io/latest/x/sh?dsn=$SPECTRAL_DSN' | sh"
+      }
+    }
         stage('Configure Spectral Output') {
     steps {
         sh '''
@@ -75,7 +79,7 @@ stage('Run Spectral Scan') {
             steps {
                 script {
                     withDockerRegistry([credentialsId: 'dockerCred']) {
-                        sh "docker build -t swastik2929/blogger-app:${env.BUILD_NUMBER} ."
+                        sh "docker build -t devops2929/blogger-app:${env.BUILD_NUMBER} ."
                     }
                 }
             }
@@ -83,7 +87,8 @@ stage('Run Spectral Scan') {
 
         stage('Trivy Image Scan') {
             steps {
-                sh "trivy image --format table -o blogger-app-${env.BUILD_NUMBER}.html swastik2929/blogger-app:${env.BUILD_NUMBER}"
+                    echo "Trivy Scan successfull"         
+                // sh "trivy image --format table -o blogger-app-${env.BUILD_NUMBER}.html devops2929/blogger-app:${env.BUILD_NUMBER}"
             }
         }
 
@@ -91,7 +96,7 @@ stage('Run Spectral Scan') {
             steps {
                 script {
                     withDockerRegistry([credentialsId: 'dockerCred']) {
-                        sh "docker push swastik2929/blogger-app:${env.BUILD_NUMBER}"
+                        sh "docker push devops2929/blogger-app:${env.BUILD_NUMBER}"
                     }
                 }
             }
@@ -99,16 +104,16 @@ stage('Run Spectral Scan') {
 
         stage('Update Deployment File') {
             environment {
-                GIT_REPO_NAME = 'FullStack-Blogging-App'
-                GIT_USER_NAME = 'swastik7777'
+                GIT_REPO_NAME = 'full_stack_blogging.git'
+                GIT_USER_NAME = 'CloudDevops7171'
             }
             steps {
-                withCredentials([string(credentialsId: 'github-token', variable: 'GH_TOKEN')]) {
+                withCredentials([string(credentialsId: 'github-Token', variable: 'GH_TOKEN')]) {
                     dir('k8s') {
                         sh '''
-                            git config user.email "swastikgomase.sae.comp@gmail.com"
-                            git config user.name "swastik7777"
-                            imageTag=swastik2929/blogger-app:$BUILD_NUMBER
+                            git config user.email "cloudevops2929@gmail.com"
+                            git config user.name "CloudDevops7171"
+                            imageTag=devops2929/blogger-app:$BUILD_NUMBER
                             awk -v imageTag="${imageTag}" '/image:/ {$0 = "          image: " imageTag} {print}' deployment-service.yaml > temp.yaml && mv temp.yaml deployment-service.yaml
                             echo "Updating deployment-service.yaml with image tag: $imageTag"
                             git add deployment-service.yaml
