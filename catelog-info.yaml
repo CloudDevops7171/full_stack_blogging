@@ -4,7 +4,7 @@ metadata:
  name: full-stack-user
  description: REST API for managing users in the system
  annotations:
- github.com/project-slug: user-service
+ github.com/project-slug: user-29
 spec:
  type: service
  owner: guest
